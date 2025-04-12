@@ -9,7 +9,6 @@
 
 import logging
 from logging import NullHandler
-from Hologram.Event import Event
 
 # Modem error codes - this is similar to what we have in Dash system firmware.
 MODEM_NO_MATCH = -3
@@ -33,12 +32,11 @@ class IModem:
         MODEM_OK: 'Modem returned OK'
     }
 
-    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600', event=Event()):
+    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600'):
         # Logging setup.
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(NullHandler())
 
-        self.event = event
         self.device_name = device_name
         self.baud_rate = baud_rate
 

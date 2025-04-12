@@ -58,19 +58,16 @@ class Modem(IModem):
     }
 
     # The device_name is the same as the serial port, only provide a device_name if you dont want it to be autodectected
-    def __init__(self, device_name=None, baud_rate='9600', chatscript_file=None, 
-                 event=Event(), apn='hologram', pdp_context=1):
+    def __init__(self, device_name=None, 
+		baud_rate='9600', chatscript_file=None, 
+		apn='hologram', pdp_context=1):
 
-        super().__init__(device_name=device_name, baud_rate=baud_rate,
-                                    event=event)
+        super().__init__(device_name=device_name, baud_rate=baud_rate)
 
         self.serial_port = None
         self.timeout = Modem.DEFAULT_SERIAL_TIMEOUT
         self.response = []
-        self._at_sockets_available = False
         self.urc_state = Modem.SOCKET_INIT
-        self._socket_receive_buffer = deque()
-        self.socket_identifier = 0
         self.last_read_payload_length = 0
         self.result = ModemResult.OK
         self.debug_out = ''
@@ -293,27 +290,10 @@ class Modem(IModem):
         return ok == ModemResult.OK
         
 
-    def pop_received_message(self):
-        self.checkURC()
-        data = None
-        if len(self._socket_receive_buffer) > 0:
-            data = self._socket_receive_buffer.popleft()
-        return data
-
     def open_receive_socket(self, receive_port):
         self.create_socket()
         # self.receive_socket_thread()
         self.listen_socket(receive_port)
-
-    def _read_and_append_message_receive_buffer(self, socket_identifier, payload_length):
-        msg = self.read_socket(socket_identifier=socket_identifier, payload_length=payload_length)
-        self._socket_receive_buffer.append(msg)
-        self.close_socket(socket_identifier=socket_identifier)
-
-    def create_socket(self):
-        op = self._basic_set('+USOCR', '6', strip_val=False)
-        if op is not None:
-            self.socket_identifier = int(op)
 
     # REQUIRES: The host and port.
     # EFFECTS: Issues an AT command to connect to the specified socket identifier.
@@ -921,10 +901,6 @@ class Modem(IModem):
     @property
     def mode(self):
         return self._mode
-
-    @property
-    def at_sockets_available(self):
-        return self._at_sockets_available
 
     @property
     def modem_mode(self):
